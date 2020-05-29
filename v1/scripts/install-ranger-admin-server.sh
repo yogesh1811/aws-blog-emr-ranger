@@ -114,6 +114,17 @@ sudo sed -i "s|SOLR_RANGER_PORT=.*|SOLR_RANGER_PORT=8983|g" install.properties
 chmod +x setup.sh
 ./setup.sh
 #Start Ranger Admin
+sudo echo "log4j.appender.xa_log_policy_appender=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.xa_log_policy_appender.file=\${logdir}/ranger_admin_policy_updates.log
+log4j.appender.xa_log_policy_appender.datePattern='.'yyyy-MM-dd
+log4j.appender.xa_log_policy_appender.append=true
+log4j.appender.xa_log_policy_appender.layout=org.apache.log4j.PatternLayout
+log4j.appender.xa_log_policy_appender.layout.ConversionPattern=%d [%t] %-5p %C{6} (%F:%L) - %m%n
+
+log4j.category.org.apache.ranger.rest.ServiceREST=debug,xa_log_policy_appender
+log4j.additivity.org.apache.ranger.rest.ServiceREST=false" >> /usr/lib/ranger/$ranger_admin_server/ews/webapp/WEB-INF/log4j.properties
+sudo ln -s /usr/lib/ranger/$ranger_admin_server/ews/webapp/WEB-INF/classes/ranger-plugins/hive/ranger-hive-plugin-$ranger_download_version* /usr/lib/ranger/$ranger_admin_server/ews/webapp/WEB-INF/lib/
+sudo ln -s /usr/lib/ranger/$ranger_admin_server/ews/webapp/WEB-INF/classes/ranger-plugins/hdfs/ranger-hdfs-plugin-$ranger_download_version* /usr/lib/ranger/$ranger_admin_server/ews/webapp/WEB-INF/lib/
 sudo /usr/bin/ranger-admin stop || true
 sudo /usr/bin/ranger-admin start
 i=0;
@@ -134,5 +145,12 @@ done
 #Start SOLR
 #/opt/solr/bin/solr stop -p 8983 || true
 #/opt/solr/bin/solr start
+# Install S3 service defination
+wget $s3bucket_http_url/inputdata/ranger-servicedef-s3.json .
+wget $s3bucket_http_url/inputdata/ranger-s3-repo.json .
+curl -u admin:admin -X DELETE http://localhost:6080/service/public/v2/api/servicedef/name/awss3
+curl -u admin:admin -X POST -H "Accept: application/json" -H "Content-Type: application/json" http://localhost:6080/service/public/v2/api/servicedef -d @ranger-servicedef-s3.json
+curl -iv -u admin:admin -d @ranger-s3-repo.json -H "Content-Type: application/json" -X POST http://localhost:6080/service/public/v2/api/service/
+# Restart SOLR
 sudo /opt/solr/ranger_audit_server/scripts/stop_solr.sh || true
 sudo /opt/solr/ranger_audit_server/scripts/start_solr.sh
