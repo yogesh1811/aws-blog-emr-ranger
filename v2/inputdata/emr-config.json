@@ -1,0 +1,31 @@
+{
+  "ClusterId": "xxxx",
+  "InstanceGroups": [
+    {
+      "InstanceGroupId": "xxx",
+      "Configurations": [
+        {
+          "Classification": "livy-conf",
+          "Properties": {
+            "livy.superusers": "knox,hue,livy",
+            "livy.impersonation.enabled": "true",
+            "livy.repl.enable-hive-context": "true"
+          },
+          "Configurations": []
+        },
+        {
+          "Classification": "core-site",
+          "Properties": {
+            "hadoop.proxyuser.knox.groups": "*",
+            "hadoop.proxyuser.knox.hosts": "*",
+            "hadoop.proxyuser.livy.groups": "*",
+            "hadoop.proxyuser.livy.hosts": "*",
+            "hadoop.proxyuser.hive.hosts": "*",
+            "hadoop.proxyuser.hive.groups": "*",
+            "hadoop.proxyuser.hue_hive.groups": "*",
+
+          }
+        }
+      ]
+    }]
+}
